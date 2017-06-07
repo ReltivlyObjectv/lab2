@@ -81,11 +81,13 @@ public:
 
 class Global {
 public:
-	int done;
+	int keyTable[65536];
+    	int done;
 	int xres, yres;
 	int walk;
 	int walkFrame;
 	double delay;
+	bool walkingLeft;
 	Ppmimage *walkImage;
 	GLuint walkTexture;
 	Vec box[20];
@@ -97,6 +99,7 @@ public:
 		walkFrame=0;
 		walkImage=NULL;
 		delay = 0.1;
+		walkingLeft = false;
 		for (int i=0; i<20; i++) {
 			box[i][0] = rnd() * xres;
 			box[i][1] = rnd() * (yres-220) + 220.0;
@@ -311,30 +314,39 @@ void checkMouse(XEvent *e)
 void checkKeys(XEvent *e)
 {
 	//keyboard input?
-	static int shift=0;
 	int key = XLookupKeysym(&e->xkey, 0);
 	if (e->type == KeyRelease) {
 		if (key == XK_Shift_L || key == XK_Shift_R)
-			shift=0;
+			gl.keyTable[key]=0;
 		return;
 	}
 	if (e->type == KeyPress) {
 		if (key == XK_Shift_L || key == XK_Shift_R) {
-			shift=1;
+			gl.keyTable[key]=1;
 			return;
 		}
 	} else {
 		return;
 	}
-	if (shift) {}
+	if (gl.keyTable[key]) {}
 	switch (key) {
 		case XK_w:
 			timers.recordTime(&timers.walkTime);
 			gl.walk ^= 1;
 			break;
 		case XK_Left:
+			gl.walk ^= 1;
+			if(!gl.walkingLeft){
+				gl.walk = 1;
+			}
+			gl.walkingLeft = true;
 			break;
 		case XK_Right:
+			gl.walk ^= 1;
+			if(gl.walkingLeft){
+				gl.walk = 1;
+			}
+			gl.walkingLeft = false;
 			break;
 		case XK_Up:
 			break;
@@ -387,10 +399,18 @@ void physics(void)
 				gl.walkFrame -= 16;
 			timers.recordTime(&timers.walkTime);
 		}
-		for (int i=0; i<20; i++) {
+		if(gl.walkingLeft){
+		    for (int i=19; i>=0; i--) {
+			gl.box[i][0] += 2.0 * (0.05 / gl.delay);
+			if (gl.box[i][0] > gl.xres)
+			    gl.box[i][0] -= gl.xres + 10.0;
+		    }
+		}else{
+		    for (int i=0; i<20; i++) {
 			gl.box[i][0] -= 2.0 * (0.05 / gl.delay);
 			if (gl.box[i][0] < -10.0)
-				gl.box[i][0] += gl.xres + 10.0;
+			    gl.box[i][0] += gl.xres + 10.0;
+		    }
 		}
 	}
 }
@@ -406,12 +426,12 @@ void render(void)
 	//
 	//show ground
 	glBegin(GL_QUADS);
-		glColor3f(0.2, 0.2, 0.2);
-		glVertex2i(0,       220);
-		glVertex2i(gl.xres, 220);
-		glColor3f(0.4, 0.4, 0.4);
-		glVertex2i(gl.xres,   0);
-		glVertex2i(0,         0);
+	glColor3f(0.2, 0.2, 0.2);
+	glVertex2i(0,       220);
+	glVertex2i(gl.xres, 220);
+	glColor3f(0.4, 0.4, 0.4);
+	glVertex2i(gl.xres,   0);
+	glVertex2i(0,         0);
 	glEnd();
 	//
 	//fake shadow
@@ -438,6 +458,9 @@ void render(void)
 	}
 	float h = 200.0;
 	float w = h * 0.5;
+	if(gl.walkingLeft){
+		w *= -1;
+	}
 	glPushMatrix();
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, gl.walkTexture);
