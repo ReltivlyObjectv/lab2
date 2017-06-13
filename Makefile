@@ -1,12 +1,12 @@
 CFLAGS = -I ./include
 LFLAGS = -lrt -lX11 -lGLU -lGL -pthread -lm #-lXrandr
 
-all: lab2
+all: walk
 
-walk: lab2.cpp ppm.cpp
+walk: lab2.cpp ppm.cpp libggfonts.a
 	g++ $(CFLAGS) lab2.cpp ppm.cpp libggfonts.a -Wall -Wextra $(LFLAGS) -owalk
 
 clean:
-	rm -f lab2
+	rm -f walk
 	rm -f *.o
 
