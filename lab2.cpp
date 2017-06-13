@@ -32,8 +32,8 @@ typedef Flt	Matrix[4][4];
 #define VecCopy(a,b) (b)[0]=(a)[0];(b)[1]=(a)[1];(b)[2]=(a)[2]
 #define VecDot(a,b)	((a)[0]*(b)[0]+(a)[1]*(b)[1]+(a)[2]*(b)[2])
 #define VecSub(a,b,c) (c)[0]=(a)[0]-(b)[0]; \
-                      (c)[1]=(a)[1]-(b)[1]; \
-                      (c)[2]=(a)[2]-(b)[2]
+							 (c)[1]=(a)[1]-(b)[1]; \
+(c)[2]=(a)[2]-(b)[2]
 //constants
 const float timeslice = 1.0f;
 const float gravity = -0.2f;
@@ -57,55 +57,55 @@ void render(void);
 //-----------------------------------------------------------------------------
 //Setup timers
 class Timers {
-public:
-	double physicsRate;
-	double oobillion;
-	struct timespec timeStart, timeEnd, timeCurrent;
-	struct timespec walkTime;
-	Timers() {
-		physicsRate = 1.0 / 30.0;
-		oobillion = 1.0 / 1e9;
-	}
-	double timeDiff(struct timespec *start, struct timespec *end) {
-		return (double)(end->tv_sec - start->tv_sec ) +
+	public:
+		double physicsRate;
+		double oobillion;
+		struct timespec timeStart, timeEnd, timeCurrent;
+		struct timespec walkTime;
+		Timers() {
+			physicsRate = 1.0 / 30.0;
+			oobillion = 1.0 / 1e9;
+		}
+		double timeDiff(struct timespec *start, struct timespec *end) {
+			return (double)(end->tv_sec - start->tv_sec ) +
 				(double)(end->tv_nsec - start->tv_nsec) * oobillion;
-	}
-	void timeCopy(struct timespec *dest, struct timespec *source) {
-		memcpy(dest, source, sizeof(struct timespec));
-	}
-	void recordTime(struct timespec *t) {
-		clock_gettime(CLOCK_REALTIME, t);
-	}
+		}
+		void timeCopy(struct timespec *dest, struct timespec *source) {
+			memcpy(dest, source, sizeof(struct timespec));
+		}
+		void recordTime(struct timespec *t) {
+			clock_gettime(CLOCK_REALTIME, t);
+		}
 } timers;
 //-----------------------------------------------------------------------------
 
 class Global {
-public:
-	int keyTable[65536];
-    	int done;
-	int xres, yres;
-	int walk;
-	int walkFrame;
-	double delay;
-	bool walkingLeft;
-	Ppmimage *walkImage;
-	GLuint walkTexture;
-	Vec box[20];
-	Global() {
-		done=0;
-		xres=800;
-		yres=600;
-		walk=0;
-		walkFrame=0;
-		walkImage=NULL;
-		delay = 0.1;
-		walkingLeft = false;
-		for (int i=0; i<20; i++) {
-			box[i][0] = rnd() * xres;
-			box[i][1] = rnd() * (yres-220) + 220.0;
-			box[i][2] = 0.0;
+	public:
+		int keyTable[65536];
+		int done;
+		int xres, yres;
+		int walk;
+		int walkFrame;
+		double delay;
+		bool walkingLeft;
+		Ppmimage *walkImage;
+		GLuint walkTexture;
+		Vec box[20];
+		Global() {
+			done=0;
+			xres=800;
+			yres=600;
+			walk=0;
+			walkFrame=0;
+			walkImage=NULL;
+			delay = 0.1;
+			walkingLeft = false;
+			for (int i=0; i<20; i++) {
+				box[i][0] = rnd() * xres;
+				box[i][1] = rnd() * (yres-220) + 220.0;
+				box[i][2] = 0.0;
+			}
 		}
-	}
 } gl;
 
 int main(void)
@@ -169,10 +169,10 @@ void initXWindows(void)
 	Colormap cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
 	swa.colormap = cmap;
 	swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-						StructureNotifyMask | SubstructureNotifyMask;
+		StructureNotifyMask | SubstructureNotifyMask;
 	win = XCreateWindow(dpy, root, 0, 0, gl.xres, gl.yres, 0,
-							vi->depth, InputOutput, vi->visual,
-							CWColormap | CWEventMask, &swa);
+			vi->depth, InputOutput, vi->visual,
+			CWColormap | CWEventMask, &swa);
 	GLXContext glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
 	glXMakeCurrent(dpy, win, glc);
 	setTitle();
@@ -263,7 +263,7 @@ void initOpengl(void)
 	//must build a new set of data...
 	unsigned char *walkData = buildAlphaData(gl.walkImage);	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-							GL_RGBA, GL_UNSIGNED_BYTE, walkData);
+			GL_RGBA, GL_UNSIGNED_BYTE, walkData);
 	free(walkData);
 	unlink("./images/walk.ppm");
 	//-------------------------------------------------------------------------
@@ -311,6 +311,32 @@ void checkMouse(XEvent *e)
 	}
 }
 
+void screenCapture()
+{
+	static int num = 0;
+	unsigned char* data = new unsigned char[gl.xres*gl.yres*3];
+	glReadPixels(0, 0, gl.xres, gl.yres, GL_RGB, GL_UNSIGNED_BYTE, data);
+	char ts[64];
+	sprintf(ts, "pic%03i.ppm", num++);
+	FILE* fpo = fopen(ts, "w");
+	if(fpo){
+		fprintf(fpo, "P6\n");
+		fprintf(fpo, "%i %i\n", gl.xres, gl.yres);
+		fprintf(fpo, "255\n");
+		unsigned char* p = data;
+		p += ((gl.yres - 1) * (gl.xres*3));
+		//Added nested for loops to make screen shot right side up
+		for(int i=0; i<(gl.yres); i++){
+			for(int j=0; j<gl.xres*3; j++){
+				fprintf(fpo, "%c", p[j]);
+			
+			}
+			p -= gl.xres *3;
+		}
+		fclose(fpo);
+	}
+}
+
 void checkKeys(XEvent *e)
 {
 	//keyboard input?
@@ -330,6 +356,9 @@ void checkKeys(XEvent *e)
 	}
 	if (gl.keyTable[key]) {}
 	switch (key) {
+		case XK_s:
+			screenCapture();
+			break;
 		case XK_w:
 			timers.recordTime(&timers.walkTime);
 			gl.walk ^= 1;
@@ -400,17 +429,17 @@ void physics(void)
 			timers.recordTime(&timers.walkTime);
 		}
 		if(gl.walkingLeft){
-		    for (int i=19; i>=0; i--) {
-			gl.box[i][0] += 2.0 * (0.05 / gl.delay);
-			if (gl.box[i][0] > gl.xres)
-			    gl.box[i][0] -= gl.xres + 10.0;
-		    }
+			for (int i=19; i>=0; i--) {
+				gl.box[i][0] += 2.0 * (0.05 / gl.delay);
+				if (gl.box[i][0] > gl.xres)
+					gl.box[i][0] -= gl.xres + 10.0;
+			}
 		}else{
-		    for (int i=0; i<20; i++) {
-			gl.box[i][0] -= 2.0 * (0.05 / gl.delay);
-			if (gl.box[i][0] < -10.0)
-			    gl.box[i][0] += gl.xres + 10.0;
-		    }
+			for (int i=0; i<20; i++) {
+				gl.box[i][0] -= 2.0 * (0.05 / gl.delay);
+				if (gl.box[i][0] < -10.0)
+					gl.box[i][0] += gl.xres + 10.0;
+			}
 		}
 	}
 }
@@ -449,10 +478,10 @@ void render(void)
 		glTranslated(gl.box[i][0],gl.box[i][1],gl.box[i][2]);
 		glColor3f(0.2, 0.2, 0.2);
 		glBegin(GL_QUADS);
-			glVertex2i( 0,  0);
-			glVertex2i( 0, 30);
-			glVertex2i(20, 30);
-			glVertex2i(20,  0);
+		glVertex2i( 0,  0);
+		glVertex2i( 0, 30);
+		glVertex2i(20, 30);
+		glVertex2i(20,  0);
 		glEnd();
 		glPopMatrix();
 	}
@@ -475,10 +504,10 @@ void render(void)
 	float tx = (float)ix / 8.0;
 	float ty = (float)iy / 2.0;
 	glBegin(GL_QUADS);
-		glTexCoord2f(tx,      ty+.5); glVertex2i(cx-w, cy-h);
-		glTexCoord2f(tx,      ty);    glVertex2i(cx-w, cy+h);
-		glTexCoord2f(tx+.125, ty);    glVertex2i(cx+w, cy+h);
-		glTexCoord2f(tx+.125, ty+.5); glVertex2i(cx+w, cy-h);
+	glTexCoord2f(tx,      ty+.5); glVertex2i(cx-w, cy-h);
+	glTexCoord2f(tx,      ty);    glVertex2i(cx-w, cy+h);
+	glTexCoord2f(tx+.125, ty);    glVertex2i(cx+w, cy+h);
+	glTexCoord2f(tx+.125, ty+.5); glVertex2i(cx+w, cy-h);
 	glEnd();
 	glPopMatrix();
 	glBindTexture(GL_TEXTURE_2D, 0);

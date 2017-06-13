@@ -9,4 +9,5 @@ walk: lab2.cpp ppm.cpp libggfonts.a
 clean:
 	rm -f walk
 	rm -f *.o
+	rm -f *.ppm
 
