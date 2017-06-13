@@ -10,4 +10,4 @@ clean:
 	rm -f walk
 	rm -f *.o
 	rm -f *.ppm
-
+	rm *~
