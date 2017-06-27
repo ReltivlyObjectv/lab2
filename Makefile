@@ -3,11 +3,11 @@ LFLAGS = -lrt -lX11 -lGLU -lGL -pthread -lm #-lXrandr
 
 all: walk
 
-walk: lab2.cpp ppm.cpp libggfonts.a
-	g++ $(CFLAGS) lab2.cpp ppm.cpp libggfonts.a -Wall -Wextra $(LFLAGS) -owalk
+walk: walk.cpp conn.cpp log.cpp
+	g++ $(CFLAGS) walk.cpp conn.cpp ppm.cpp log.cpp libggfonts.a -Wall -Wextra $(LFLAGS) -owalk
 
 clean:
 	rm -f walk
 	rm -f *.o
-	rm -f *.ppm
-	rm *~
+	rm -f ./*~
+	rm -f ./*.swp
