@@ -37,7 +37,7 @@ void program_usage();
 #define IP_LENGTH 16
 char* getWebpage(char* shost, char* spage)
 {
-//	printf("getWebPage\n");
+	//	printf("getWebPage\n");
 	struct sockaddr_in *remote;
 	int sock;
 	int tmpres;
@@ -65,7 +65,7 @@ char* getWebpage(char* shost, char* spage)
 	remote->sin_port = htons(PORT);
 
 	if (connect(sock, (struct sockaddr *)remote, sizeof(struct sockaddr))
-		< 0) {
+			< 0) {
 		perror("Could not connect");
 		exit(1);
 	}

@@ -672,7 +672,7 @@ void physics(void)
 
 void render(void)
 {
-//	printf("Begin render\n");
+	//	printf("Begin render\n");
 	Rect r;
 	//Clear the screen
 	glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -910,7 +910,7 @@ void render(void)
 		ggprint8b(&r, 16, 0, "W Walk cycle");
 		ggprint8b(&r, 16, 0, "P Play");
 		char* host = (char*) "cs.csubak.edu";
-		char* page = (char*) "~crussell/lab5.txt";
+		char* page = (char*) "~crussell/lab5.php";
 		static long lastFetched = 0;
 		long currentTime = time(NULL);
 		if(currentTime > lastFetched + 2) {
@@ -918,11 +918,11 @@ void render(void)
 			content = getWebpage(host, page);
 			printf("Fetched: %s", content.c_str());
 			lastFetched = currentTime;
-//			printf("Recorded current time\n");
+			//			printf("Recorded current time\n");
 		}
 		ggprint8b(&r, 16, 0, content.c_str());
 	}
-//	printf("Done with render\n");
+	//	printf("Done with render\n");
 }
 
 

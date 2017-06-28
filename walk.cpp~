@@ -494,18 +494,12 @@ void checkKeys(XEvent *e)
 	//keyboard input?
 	static int shift=0;
 	int key = XLookupKeysym(&e->xkey, 0);
-	if (key > 65536) {
-		gl.keys[key]=1;
-	} else {
-		return;
-	}
 	if (e->type == KeyRelease) {
 		gl.keys[key]=0;
 		if (key == XK_Shift_L || key == XK_Shift_R)
 			shift=0;
 		return;
-	}
-	if (e->type == KeyPress) {
+	} else if (e->type == KeyPress) {
 		gl.keys[key]=1;
 		if (key == XK_Shift_L || key == XK_Shift_R) {
 			shift=1;
@@ -916,7 +910,7 @@ void render(void)
 		ggprint8b(&r, 16, 0, "W Walk cycle");
 		ggprint8b(&r, 16, 0, "P Play");
 		char* host = (char*) "cs.csubak.edu";
-		char* page = (char*) "~crussell/lab5.txt";
+		char* page = (char*) "~crussell/lab5.php";
 		static long lastFetched = 0;
 		long currentTime = time(NULL);
 		if(currentTime > lastFetched + 2) {
