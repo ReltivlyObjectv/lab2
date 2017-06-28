@@ -105,7 +105,8 @@ enum State {
 	STATE_NONE,
 	STATE_STARTUP,
 	STATE_GAMEPLAY,
-	STATE_GAMEOVER
+	STATE_GAMEOVER,
+	STATE_PAUSE
 };
 
 class Global {
@@ -511,7 +512,12 @@ void checkKeys(XEvent *e)
 	if (shift) {}
 	switch (key) {
 		case XK_p:
-			gl.state = STATE_GAMEPLAY;
+			if (gl.state == STATE_STARTUP || gl.state == STATE_PAUSE) {
+				gl.state = STATE_GAMEPLAY;
+			} else {
+				gl.state = STATE_PAUSE;
+			}
+			break;
 		case XK_s:
 			screenCapture();
 			break;
@@ -908,7 +914,45 @@ void render(void)
 		r.center = 0;
 		r.left = gl.xres/2 - 100;
 		ggprint8b(&r, 16, 0, "W Walk cycle");
-		ggprint8b(&r, 16, 0, "P Play");
+		ggprint8b(&r, 16, 0, "P Play/Pause");
+		char* host = (char*) "cs.csubak.edu";
+		char* page = (char*) "~crussell/lab5.php";
+		static long lastFetched = 0;
+		long currentTime = time(NULL);
+		if(currentTime > lastFetched + 2) {
+			printf("Fetching MOTD...\n");
+			content = getWebpage(host, page);
+			printf("Fetched: %s", content.c_str());
+			lastFetched = currentTime;
+			//			printf("Recorded current time\n");
+		}
+		ggprint8b(&r, 16, 0, content.c_str());
+	}
+	//check for startup state
+	if (gl.state == STATE_PAUSE) {
+		h = 100;
+		w = 200;
+		glPushMatrix();
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(1.0,1.0,0.0, 0.8);
+		glTranslated(gl.xres/2, gl.yres/2, 0);
+		glBegin(GL_QUADS);
+		glVertex2i(-w,-h);
+		glVertex2i(-w,h);
+		glVertex2i(w,h);
+		glVertex2i(w,-h);
+		glEnd();
+		glDisable(GL_BLEND);
+		glPopMatrix();
+		r.bot = gl.yres/2 + 80;
+		r.left = gl.xres/2;
+		r.center = 1;
+		ggprint8b(&r, 16, 0, "PAUSE SCREEN");
+		r.center = 0;
+		r.left = gl.xres/2 - 100;
+		ggprint8b(&r, 16, 0, "W Walk cycle");
+		ggprint8b(&r, 16, 0, "P Resume");
 		char* host = (char*) "cs.csubak.edu";
 		char* page = (char*) "~crussell/lab5.php";
 		static long lastFetched = 0;
