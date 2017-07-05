@@ -58,7 +58,9 @@ void init();
 void physics(void);
 char* getWebpage(char* shost, char* spage);
 void render(void);
-
+#ifdef UNIT_TEST
+void unitTest_normalize();
+#endif
 //-----------------------------------------------------------------------------
 //Setup timers
 class Timers {
@@ -542,6 +544,11 @@ void checkKeys(XEvent *e)
 			timers.recordTime(&gl.exp44.time);
 			gl.exp44.onoff ^= 1;
 			break;
+		#ifdef UNIT_TEST
+		case XK_a:
+			unitTest_normalize();
+			break;
+		#endif
 		case XK_Left:
 			break;
 		case XK_Right:
@@ -582,6 +589,21 @@ Flt VecNormalize(Vec vec)
 	vec[2] = zlen * tlen;
 	return(len);
 }
+#ifdef UNIT_TEST
+#define TOLERANCE 0.05
+void unitTest_normalize()
+{
+	Vec vec = {10.0, 10.0, 0.0};
+	Flt ret = VecNormalize(vec);
+	ret = ret - 14.14;
+	ret = fabs(ret);
+	if (ret <= TOLERANCE) {
+		printf("unit test success.\n");
+	} else {
+		printf("unit test failed. ret: %f vec[0]:%f.\n", ret, vec[0]);
+	}
+}
+#endif
 
 void physics(void)
 {
